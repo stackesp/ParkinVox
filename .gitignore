@@ -10,3 +10,4 @@ validation_results.csv
 svd_cache/
 models/
 data/
+voiced_raw/
