@@ -10,7 +10,7 @@ ParkinVox, makine öğrenmesi kullanarak konuşmadan Parkinson hastalığının 
 
 [Kurulum](#install) / [Kullanım](#usage) / [Doğrulama](#validation) / [Sınırlamalar](#limitations) / [Yol haritası](#roadmap)
 
-> **UYARI:** ParkinVox ses sinyallerini ölçer. Parkinson hastalığı teşhisi koymaz ve doktorun yerine kullanılmamalıdır.
+> **UYARI:** ParkinVox ses sinyallerini ölçer. Parkinson hastalığı teşhisi koymaz ve doktorların yerine kullanılmamalıdır.
 
 <br>
 
