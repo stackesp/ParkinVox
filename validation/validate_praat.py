@@ -68,7 +68,7 @@ def praat_pitch_features(
     maximum_f0_hz: float,
 ) -> dict[str, float]:
     pitch = sound.to_pitch_ac(
-        time_step=0.0,
+        time_step=None,
         pitch_floor=minimum_f0_hz,
         pitch_ceiling=maximum_f0_hz,
     )
@@ -93,25 +93,31 @@ def praat_perturbation_features(
         minimum_f0_hz,
         maximum_f0_hz,
     )
+
+    minimum_period_seconds = 1.0 / maximum_f0_hz
+    maximum_period_seconds = 1.0 / minimum_f0_hz
+
     jitter_local = call(
         point_process,
         "Get jitter (local)",
         0,
         0,
-        minimum_f0_hz,
-        maximum_f0_hz,
+        minimum_period_seconds,
+        maximum_period_seconds,
         1.3,
     )
+
     shimmer_local = call(
         [sound, point_process],
         "Get shimmer (local)",
         0,
         0,
-        minimum_f0_hz,
-        maximum_f0_hz,
+        minimum_period_seconds,
+        maximum_period_seconds,
         1.3,
         1.6,
     )
+
     return {
         "praat_jitter_local": finite_float(jitter_local),
         "praat_shimmer_local": finite_float(shimmer_local),
@@ -132,17 +138,18 @@ def praat_hnr_feature(
     return {"praat_hnr_db": finite_float(hnr_db)}
 
 
-def praat_formant_features(sound: parselmouth.Sound) -> dict[str, float]:
+def praat_formant_features(sound: parselmouth.Sound, formant_ceiling_hz: float) -> dict[str, float]:
     formants = sound.to_formant_burg(
         time_step=0.01,
         max_number_of_formants=5.0,
-        maximum_formant=5_000.0,
+        maximum_formant=formant_ceiling_hz,
         window_length=0.025,
         pre_emphasis_from=50.0,
     )
 
     start_time = max(float(sound.xmin) + 0.05, float(sound.xmin))
     end_time = min(float(sound.xmax) - 0.05, float(sound.xmax))
+
     if end_time <= start_time:
         start_time = float(sound.xmin)
         end_time = float(sound.xmax)
@@ -185,7 +192,7 @@ def extract_praat_features(
         )
     )
     results.update(praat_hnr_feature(sound, config.minimum_f0_hz))
-    results.update(praat_formant_features(sound))
+    results.update(praat_formant_features(sound, min(config.formant_ceiling_hz, float(sound.sampling_frequency) / 2)))
     return results
 
 

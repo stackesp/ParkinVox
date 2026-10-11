@@ -1,3 +1,5 @@
+# This file was AI-generated.
+
 from __future__ import annotations
 
 import math
@@ -145,6 +147,50 @@ def test_clean_sine_quality_matches_analytic_values() -> None:
     assert quality["qc_low_level_flag"] is False
     assert quality["qc_clipping_flag"] is False
     assert quality["qc_short_recording_flag"] is False
+
+
+def perturbed_pulse_train(
+    jitter: float,
+    shimmer: float,
+    frequency_hz: float = 150.0,
+    duration_seconds: float = 2.0,
+    sample_rate: int = 16_000,
+    seed: int = 0,
+) -> np.ndarray:
+    generator = np.random.default_rng(seed)
+    cycles = []
+
+    for _ in range(int(duration_seconds * frequency_hz)):
+        cycle_length = int(round(sample_rate / frequency_hz * (1 + jitter * generator.standard_normal())))
+        phase = np.arange(cycle_length) / cycle_length
+        amplitude = 1 + shimmer * generator.standard_normal()
+        cycles.append(amplitude * sum(np.sin(2 * np.pi * harmonic * phase) / harmonic for harmonic in range(1, 8)))
+
+    return 0.2 * np.concatenate(cycles)
+
+
+def test_steady_pulse_train_has_no_perturbation(tmp_path: Path) -> None:
+    path = write_wav(tmp_path / "steady.wav", perturbed_pulse_train(jitter=0.0, shimmer=0.0))
+    features = extract_voice_features(path, task="sustained_vowel")
+
+    assert features["phon_jitter_local"] < 0.002
+    assert features["phon_shimmer_local"] < 0.002
+
+
+def test_cycle_to_cycle_jitter_is_recovered(tmp_path: Path) -> None:
+    path = write_wav(tmp_path / "jitter.wav", perturbed_pulse_train(jitter=0.01, shimmer=0.0))
+    features = extract_voice_features(path, task="sustained_vowel")
+
+    assert features["phon_jitter_local"] == pytest.approx(0.0113, abs=0.004)
+    assert features["phon_shimmer_local"] < 0.005
+
+
+def test_cycle_to_cycle_shimmer_is_detected(tmp_path: Path) -> None:
+    path = write_wav(tmp_path / "shimmer.wav", perturbed_pulse_train(jitter=0.0, shimmer=0.05))
+    features = extract_voice_features(path, task="sustained_vowel")
+
+    assert features["phon_jitter_local"] < 0.002
+    assert features["phon_shimmer_local"] > 0.015
 
 
 def test_silence_is_detected() -> None:

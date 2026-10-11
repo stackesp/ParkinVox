@@ -1,0 +1,26 @@
+
+Analyzed: 208
+QC failures: 0
+Extraction failures: 0
+Included in aggregate comparison: 208
+CSV: /data/pv/new_validation.csv
+
+AGGREGATE COMPARISON
+F0       n=208  MAE=2.86955  median AE=0.552482  median RE=0.31%  bias=1.30153  r=0.9750  BA=[-23.4617, 26.0648]
+Jitter   n=208  MAE=0.00484317  median AE=0.000179857  median RE=5.20%  bias=0.00430315  r=0.7215  BA=[-0.0294173, 0.0380236]
+Shimmer  n=208  MAE=0.0105568  median AE=0.00537395  median RE=13.79%  bias=0.00586518  r=0.9019  BA=[-0.0323122, 0.0440425]
+HNR      n=208  MAE=1.25399  median AE=0.966801  median RE=5.98%  bias=-0.704174  r=0.9700  BA=[-3.56193, 2.15358]
+F1       n=208  MAE=16.0205  median AE=5.22587  median RE=0.69%  bias=-8.81323  r=0.9694  BA=[-77.639, 60.0126]
+F2       n=208  MAE=26.1123  median AE=8.08359  median RE=0.67%  bias=-17.2033  r=0.9475  BA=[-114.114, 79.7079]
+F3       n=208  MAE=94.9072  median AE=20.0329  median RE=1.19%  bias=-73.9492  r=0.8702  BA=[-422.455, 274.557]
+
+ACCEPTANCE CHECKS
+PASS: F0 MAE
+PASS: Jitter median relative error
+PASS: Shimmer median relative error
+PASS: HNR MAE
+PASS: F1 MAE
+PASS: F2 MAE
+PASS: F3 MAE
+
+OVERALL: PASS

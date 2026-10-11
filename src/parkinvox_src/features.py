@@ -5,6 +5,7 @@ EN: Main interface for extracting Parkinson voice feature groups.
 TR: Parkinson ses özellik gruplarını çıkarmak için ana arayüz.
 """
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Literal
 
@@ -48,6 +49,7 @@ def extract_voice_features(
 
     selected_config = config or ExtractionConfig()
     source_audio, source_sample_rate, metadata = load_audio(audio_path)
+    selected_config = replace(selected_config, formant_ceiling_hz=min(selected_config.formant_ceiling_hz, source_sample_rate / 2))
     quality_features = calculate_quality_features(source_audio, source_sample_rate, selected_config)
     audio, sample_rate = prepare_audio(source_audio, source_sample_rate, selected_config)
 

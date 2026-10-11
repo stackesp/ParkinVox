@@ -1,3 +1,5 @@
+# This file was AI-generated.
+
 from pathlib import Path
 import sys
 

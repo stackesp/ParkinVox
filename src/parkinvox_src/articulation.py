@@ -22,27 +22,34 @@ def _summarize_matrix(prefix: str, values: np.ndarray) -> dict[str, float]:
     return features
 
 def _estimate_formants(audio: np.ndarray, sample_rate: int, config: ExtractionConfig) -> tuple[float, float, float]:
-    emphasized_audio = librosa.effects.preemphasis(audio)
-    frame_length = min(config.frame_length, len(emphasized_audio))
-    if frame_length <= config.lpc_order + 2:
+    formant_sample_rate = int(2 * config.formant_ceiling_hz)
+    if sample_rate != formant_sample_rate:
+        audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=formant_sample_rate)
+
+    pre_emphasis_coefficient = np.exp(-2 * np.pi * config.formant_pre_emphasis_hz / formant_sample_rate)
+    emphasized_audio = np.append(audio[0], audio[1:] - pre_emphasis_coefficient * audio[:-1])
+    frame_length = int(config.formant_window_seconds * formant_sample_rate)
+    hop_length = int(config.formant_hop_seconds * formant_sample_rate)
+    lpc_order = 2 * config.number_of_formants
+    if len(emphasized_audio) < frame_length or frame_length <= lpc_order + 2:
         return 0.0, 0.0, 0.0
 
-    frames = librosa.util.frame(emphasized_audio, frame_length=frame_length, hop_length=min(config.hop_length, frame_length))
+    frames = librosa.util.frame(emphasized_audio, frame_length=frame_length, hop_length=hop_length)
+    frame_levels = np.sqrt(np.mean(np.square(frames), axis=0))
     formant_rows: list[list[float]] = []
 
-    for frame in frames.T:
-        # Each frame is a 1D array
-        if np.sqrt(np.mean(np.square(frame))) < 1e-4:
+    for frame, frame_level in zip(frames.T, frame_levels):
+        if frame_level < 0.1 * np.max(frame_levels):
             continue
 
         try:
-            coefficients = librosa.lpc(frame * np.hamming(len(frame)), order=config.lpc_order)
+            coefficients = librosa.lpc(frame * np.hamming(len(frame)), order=lpc_order)
             roots = np.roots(coefficients)
-            roots = roots[np.imag(roots) >= 0]
-            frequencies = np.sort(np.angle(roots) * sample_rate / (2 * np.pi))
-            frequencies = frequencies[(frequencies > 90) & (frequencies < 5000)]
+            roots = roots[np.imag(roots) > 0]
+            frequencies = np.sort(np.angle(roots) * formant_sample_rate / (2 * np.pi))
+            frequencies = frequencies[(frequencies > 50) & (frequencies < config.formant_ceiling_hz - 50)]
             if len(frequencies) >= 3:
-                formant_rows.append(frequencies[:3].tolist())  
+                formant_rows.append(frequencies[:3].tolist())
         except (FloatingPointError, np.linalg.LinAlgError):
             continue
 
@@ -117,4 +124,4 @@ def calculate_vowel_features(vowel_formants: dict[str, tuple[float, float]]) -> 
         "art_vsa_hz2": vowel_space_area,
         "art_vai": vowel_arti_index,
         "art_fcr": formant_cent_ratio,
-    }
+    }

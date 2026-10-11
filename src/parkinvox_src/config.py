@@ -20,9 +20,13 @@ class ExtractionConfig:
 
     minimum_f0_hz: float = 70.0
     maximum_f0_hz: float = 500.0
+    maximum_period_factor: float = 1.3
+    maximum_amplitude_factor: float = 1.6
 
     frame_length: int = 2048
     hop_length: int = 256
+    hnr_frame_length: int = 640
+    hnr_minimum_periodicity: float = 0.5
 
     silence_threshold_db: float = 45.0
     minimum_voiced_seconds: float = 0.75
@@ -33,10 +37,14 @@ class ExtractionConfig:
     low_level_threshold_dbfs: float = -45.0
 
     number_of_mfccs: int = 13
-    lpc_order: int = 16
+    formant_ceiling_hz: float = 5000.0
+    number_of_formants: int = 5
+    formant_window_seconds: float = 0.025
+    formant_hop_seconds: float = 0.01
+    formant_pre_emphasis_hz: float = 50.0
 
     embedding_dimension: int = 5
     embedding_delay: int = 2
     recurrence_rate: float = 0.03
     theiler_window: int = 10
-    maximum_nonlinear_points: int = 1500
+    maximum_nonlinear_points: int = 1500
